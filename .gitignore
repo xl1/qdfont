@@ -2,7 +2,9 @@ node_modules
 dist
 
 .vs
+*.user
 bin
 obj
+packages
 
 result
