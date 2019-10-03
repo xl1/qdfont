@@ -15,32 +15,26 @@ namespace CosmosDbUploader.Test
     [TestClass]
     public class UploaderTest
     {
-        private Mock<IHostApplicationLifetime> _lifetime;
-        private Mock<ILogger<Uploader>> _logger;
-        private Mock<IConsoleReader> _console;
-        private Mock<IBulkExecutor> _executor;
-        private Mock<IBulkExecutorFactory> _executorFactory;
-        private CancellationTokenSource _cts;
+        private readonly Mock<IHostApplicationLifetime> _lifetime = new Mock<IHostApplicationLifetime>();
+        private readonly Mock<ILogger<Uploader>> _logger = new Mock<ILogger<Uploader>>();
+        private readonly Mock<IConsoleReader> _console = new Mock<IConsoleReader>();
+        private readonly Mock<IBulkExecutor> _executor = new Mock<IBulkExecutor>();
+        private readonly Mock<IBulkExecutorFactory> _executorFactory = new Mock<IBulkExecutorFactory>();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
 
         [TestInitialize]
         public void Initialize()
         {
-            _lifetime = new Mock<IHostApplicationLifetime>();
-            _logger = new Mock<ILogger<Uploader>>();
-            _console = new Mock<IConsoleReader>();
-            _executor = new Mock<IBulkExecutor>();
             _executor.Setup(e => e.BulkImportAsync(It.IsAny<List<Drawing>>(), false, true, null, null, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new Microsoft.Azure.CosmosDB.BulkExecutor.BulkImport.BulkImportResponse()));
-            _executorFactory = new Mock<IBulkExecutorFactory>();
             _executorFactory.Setup(f => f.CreateAsync(It.IsAny<string>()))
                 .Returns(Task.FromResult(_executor.Object));
-            _cts = new CancellationTokenSource();
         }
 
         [TestMethod]
         public async Task RunAsync_StopsApplication()
         {
-            _console.Setup(c => c.ReadLine()).Returns((string)null);
+            _console.Setup(c => c.ReadLine()).Returns((string?)null);
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
@@ -53,7 +47,7 @@ namespace CosmosDbUploader.Test
         {
             _console.SetupSequence(c => c.ReadLine())
                 .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
-                .Returns((string)null);
+                .Returns((string?)null);
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
@@ -68,7 +62,7 @@ namespace CosmosDbUploader.Test
             _console.SetupSequence(c => c.ReadLine())
                 .Returns("{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}")
                 .Returns("{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}")
-                .Returns((string)null);
+                .Returns((string?)null);
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
@@ -85,7 +79,7 @@ namespace CosmosDbUploader.Test
                 .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
                 .Returns("{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}")
                 .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
-                .Returns((string)null);
+                .Returns((string?)null);
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);

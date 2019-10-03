@@ -2,6 +2,6 @@
 {
     public interface IConsoleReader
     {
-        string ReadLine();
+        string? ReadLine();
     }
 }
