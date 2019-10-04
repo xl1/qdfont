@@ -1,9 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace CosmosDbUploader.Adapters
 {
-    public class ConsoleReader : IConsoleReader
+    public class ConsoleReader : IJsonLoader
     {
-        public string? ReadLine() => Console.ReadLine();
+        public async IAsyncEnumerable<string> LoadAsync()
+        {
+            string? line;
+            while ((line = Console.ReadLine()) != null)
+            {
+                yield return await new ValueTask<string>(line);
+            }
+        }
     }
 }

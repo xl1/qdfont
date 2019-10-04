@@ -13,14 +13,14 @@ namespace CosmosDbUploader
     {
         private readonly IHostApplicationLifetime _lifetime;
         private readonly ILogger<Uploader> _logger;
-        private readonly IConsoleReader _console;
+        private readonly IJsonLoader _console;
         private readonly IBulkExecutorFactory _executorFactory;
 
         private static readonly string _containerId = "Summary";
 
         public Uploader(IHostApplicationLifetime lifetime,
             ILogger<Uploader> logger,
-            IConsoleReader console,
+            IJsonLoader console,
             IBulkExecutorFactory executorFactory)
         {
             _lifetime = lifetime;
@@ -36,10 +36,8 @@ namespace CosmosDbUploader
         {
             var documents = new List<Models.Drawing>();
             int i = 0;
-            while (true)
+            await foreach (string line in _console.LoadAsync())
             {
-                var line = _console.ReadLine();
-                if (string.IsNullOrEmpty(line)) break;
                 var drawing = JsonConvert.DeserializeObject<Models.Drawing>(line);
                 if (drawing.recognized)
                 {

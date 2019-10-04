@@ -27,7 +27,7 @@ namespace CosmosDbUploader
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.Configure<DbConfig>(hostContext.Configuration.GetSection("CosmosDb"));
-                    services.AddTransient<IConsoleReader, ConsoleReader>();
+                    services.AddTransient<IJsonLoader, ConsoleReader>();
                     services.AddSingleton<IBulkExecutorFactory, BulkExecutorFactory>();
                     services.AddHostedService<Uploader>();
                 })

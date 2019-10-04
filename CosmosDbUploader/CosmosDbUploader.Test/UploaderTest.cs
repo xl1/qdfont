@@ -17,10 +17,11 @@ namespace CosmosDbUploader.Test
     {
         private readonly Mock<IHostApplicationLifetime> _lifetime = new Mock<IHostApplicationLifetime>();
         private readonly Mock<ILogger<Uploader>> _logger = new Mock<ILogger<Uploader>>();
-        private readonly Mock<IConsoleReader> _console = new Mock<IConsoleReader>();
+        private readonly Mock<IJsonLoader> _console = new Mock<IJsonLoader>();
         private readonly Mock<IBulkExecutor> _executor = new Mock<IBulkExecutor>();
         private readonly Mock<IBulkExecutorFactory> _executorFactory = new Mock<IBulkExecutorFactory>();
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly AsyncEnumerableBuilder _async = new AsyncEnumerableBuilder();
 
         [TestInitialize]
         public void Initialize()
@@ -34,7 +35,7 @@ namespace CosmosDbUploader.Test
         [TestMethod]
         public async Task RunAsync_StopsApplication()
         {
-            _console.Setup(c => c.ReadLine()).Returns((string?)null);
+            _console.Setup(c => c.LoadAsync()).Returns(_async.From<string>());
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
@@ -45,9 +46,8 @@ namespace CosmosDbUploader.Test
         [TestMethod]
         public async Task RunAsync_UploadDocuments()
         {
-            _console.SetupSequence(c => c.ReadLine())
-                .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
-                .Returns((string?)null);
+            _console.SetupSequence(c => c.LoadAsync())
+                .Returns(_async.From("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}"));
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
@@ -59,10 +59,11 @@ namespace CosmosDbUploader.Test
         [TestMethod]
         public async Task RunAsync_IgnoresUnrecognizedValues()
         {
-            _console.SetupSequence(c => c.ReadLine())
-                .Returns("{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}")
-                .Returns("{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}")
-                .Returns((string?)null);
+            _console.SetupSequence(c => c.LoadAsync())
+                .Returns(_async.From(
+                    "{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}",
+                    "{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}"
+                ));
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
@@ -74,12 +75,13 @@ namespace CosmosDbUploader.Test
         [TestMethod]
         public async Task RunAsync_SetsDocumentIds()
         {
-            _console.SetupSequence(c => c.ReadLine())
-                .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
-                .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
-                .Returns("{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}")
-                .Returns("{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}")
-                .Returns((string?)null);
+            _console.SetupSequence(c => c.LoadAsync())
+                .Returns(_async.From(
+                    "{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}",
+                    "{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}",
+                    "{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}",
+                    "{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}"
+                ));
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
