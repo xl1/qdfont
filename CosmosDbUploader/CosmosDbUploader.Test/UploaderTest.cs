@@ -28,7 +28,7 @@ namespace CosmosDbUploader.Test
         {
             _executor.Setup(e => e.BulkImportAsync(It.IsAny<List<Drawing>>(), false, true, null, null, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new Microsoft.Azure.CosmosDB.BulkExecutor.BulkImport.BulkImportResponse()));
-            _executorFactory.Setup(f => f.CreateAsync(It.IsAny<string>()))
+            _executorFactory.Setup(f => f.CreateAsync())
                 .Returns(Task.FromResult(_executor.Object));
         }
 

@@ -16,8 +16,6 @@ namespace CosmosDbUploader
         private readonly IJsonLoader _console;
         private readonly IBulkExecutorFactory _executorFactory;
 
-        private static readonly string _containerId = "Summary";
-
         public Uploader(IHostApplicationLifetime lifetime,
             ILogger<Uploader> logger,
             IJsonLoader console,
@@ -46,7 +44,7 @@ namespace CosmosDbUploader
                 }
             }
 
-            var bulkExecutor = await _executorFactory.CreateAsync(_containerId);
+            var bulkExecutor = await _executorFactory.CreateAsync();
             var result = await bulkExecutor.BulkImportAsync(documents, cancellationToken: stoppingToken);
 
             _logger.LogInformation($"Inserted {result.NumberOfDocumentsImported} documents");

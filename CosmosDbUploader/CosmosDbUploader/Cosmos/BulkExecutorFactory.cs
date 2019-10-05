@@ -1,8 +1,8 @@
 ﻿using Microsoft.Azure.CosmosDB.BulkExecutor;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Options;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CosmosDbUploader.Cosmos
@@ -25,13 +25,17 @@ namespace CosmosDbUploader.Cosmos
                 });
         }
 
-        public async Task<IBulkExecutor> CreateAsync(string containerId)
+        public async Task<IBulkExecutor> CreateAsync()
         {
             var databaseUri = UriFactory.CreateDatabaseUri(_cosmos.Value.DatabaseId);
-            var collection = _client.CreateDocumentCollectionQuery(databaseUri)
-                .Where(c => c.Id == containerId).AsEnumerable().FirstOrDefault();
+            var collection = new DocumentCollection { Id = _cosmos.Value.DatasetContainerId };
+            collection.PartitionKey.Paths.Add("/word");
+            collection.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
+            collection.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/drawing/*" });
 
-            var bulkExecutor = new BulkExecutor(_client, collection);
+            var collectionResponse = await _client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, collection);
+
+            var bulkExecutor = new BulkExecutor(_client, collectionResponse);
             await bulkExecutor.InitializeAsync();
 
             _client.ConnectionPolicy.RetryOptions.MaxRetryWaitTimeInSeconds = 0;

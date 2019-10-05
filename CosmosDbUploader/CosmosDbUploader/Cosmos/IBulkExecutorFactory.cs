@@ -5,6 +5,6 @@ namespace CosmosDbUploader.Cosmos
 {
     public interface IBulkExecutorFactory
     {
-        Task<IBulkExecutor> CreateAsync(string containerId);
+        Task<IBulkExecutor> CreateAsync();
     }
 }
