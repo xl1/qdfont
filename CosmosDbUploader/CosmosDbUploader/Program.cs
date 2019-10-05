@@ -27,6 +27,7 @@ namespace CosmosDbUploader
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.Configure<DbConfig>(hostContext.Configuration.GetSection("CosmosDb"));
+                    services.Configure<QuickDrawDatasetConfig>(hostContext.Configuration.GetSection("QuickDrawDataset"));
                     services.AddHttpClient();
                     services.AddTransient<IJsonLoader, QuickDrawDatasetLoader>();
                     services.AddSingleton<IBulkExecutorFactory, BulkExecutorFactory>();
