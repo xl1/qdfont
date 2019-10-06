@@ -89,6 +89,7 @@ namespace CosmosDbUploader.Test
                 .Returns(_async.From(
                     "{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}",
                     "{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}",
+                    "{\"word\": \"foo\", \"recognized\": true, \"drawing\": [[[], []]]}",
                     "{\"word\": \"test\", \"recognized\": false, \"drawing\": [[[], []]]}",
                     "{\"word\": \"test\", \"recognized\": true, \"drawing\": [[[], []]]}"
                 ));
@@ -101,9 +102,10 @@ namespace CosmosDbUploader.Test
         }
 
         private static bool Matches(List<Drawing> documents) =>
-            documents.Count == 3 &&
+            documents.Count == 4 &&
             documents[0].id == "00000000" &&
             documents[1].id == "00000001" &&
-            documents[2].id == "00000002";
+            documents[2].id == "00000000" &&
+            documents[3].id == "00000002";
     }
 }
