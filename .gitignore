@@ -6,5 +6,6 @@ dist
 bin
 obj
 packages
+appsettings.Development.json
 
 result
