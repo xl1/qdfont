@@ -27,8 +27,21 @@ namespace CosmosDbUploader
             _executorFactory = executorFactory;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-            => RunAsync(stoppingToken);
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            try
+            {
+                await RunAsync(stoppingToken);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "RunAsync threw an exception");
+            }
+            finally
+            {
+                _lifetime.StopApplication();
+            }
+        }
 
         public async Task RunAsync(CancellationToken stoppingToken)
         {
@@ -50,9 +63,6 @@ namespace CosmosDbUploader
             _logger.LogInformation($"Inserted {result.NumberOfDocumentsImported} documents");
             _logger.LogInformation($"Consumed {result.TotalRequestUnitsConsumed} RU");
             _logger.LogInformation($"Finished in {result.TotalTimeTaken.TotalSeconds} sec");
-
-            // exit app
-            _lifetime.StopApplication();
         }
     }
 }

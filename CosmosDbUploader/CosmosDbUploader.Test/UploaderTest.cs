@@ -33,14 +33,24 @@ namespace CosmosDbUploader.Test
         }
 
         [TestMethod]
-        public async Task RunAsync_StopsApplication()
+        public async Task RunAsync_DoesNotStopsApplication()
         {
             _console.Setup(c => c.LoadAsync()).Returns(_async.From<string>());
 
             using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
             await uploader.RunAsync(_cts.Token);
 
-            _lifetime.Verify(l => l.StopApplication());
+            _lifetime.Verify(l => l.StopApplication(), Times.Never);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(Newtonsoft.Json.JsonReaderException))]
+        public async Task RunAsync_ThrowsOnInvalidJsonInput()
+        {
+            _console.Setup(c => c.LoadAsync()).Returns(_async.From("invalid json"));
+
+            using var uploader = new Uploader(_lifetime.Object, _logger.Object, _console.Object, _executorFactory.Object);
+            await uploader.RunAsync(_cts.Token);
         }
 
         [TestMethod]
