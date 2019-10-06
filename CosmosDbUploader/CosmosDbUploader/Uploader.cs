@@ -15,6 +15,7 @@ namespace CosmosDbUploader
         private readonly ILogger<Uploader> _logger;
         private readonly IJsonLoader _console;
         private readonly IBulkExecutorFactory _executorFactory;
+        private const int uploadBatchSize = 100_000;
 
         public Uploader(IHostApplicationLifetime lifetime,
             ILogger<Uploader> logger,
@@ -45,19 +46,37 @@ namespace CosmosDbUploader
 
         public async Task RunAsync(CancellationToken stoppingToken)
         {
+            var bulkExecutor = await _executorFactory.CreateAsync();
+
             var documents = new List<Models.Drawing>();
-            int i = 0;
+            var idCounter = new Dictionary<string, int>();
             await foreach (string line in _console.LoadAsync())
             {
                 var drawing = JsonConvert.DeserializeObject<Models.Drawing>(line);
-                if (drawing.recognized)
+                if (drawing != null && !string.IsNullOrEmpty(drawing.word) && drawing.recognized)
                 {
-                    drawing.id = i++.ToString().PadLeft(8, '0');
+                    int id = idCounter.ContainsKey(drawing.word)
+                        ? idCounter[drawing.word] += 1
+                        : idCounter[drawing.word] = 0;
+                    drawing.id = id.ToString().PadLeft(8, '0');
                     documents.Add(drawing);
+
+                    if (documents.Count >= uploadBatchSize)
+                    {
+                        await Upload(bulkExecutor, documents, stoppingToken);
+                        documents.Clear();
+                    }
                 }
             }
+            await Upload(bulkExecutor, documents, stoppingToken);
+        }
 
-            var bulkExecutor = await _executorFactory.CreateAsync();
+        private async Task Upload(Microsoft.Azure.CosmosDB.BulkExecutor.IBulkExecutor bulkExecutor,
+            IReadOnlyList<Models.Drawing> documents,
+            CancellationToken stoppingToken)
+        {
+            if (documents.Count == 0) return;
+
             var result = await bulkExecutor.BulkImportAsync(documents, cancellationToken: stoppingToken);
 
             _logger.LogInformation($"Inserted {result.NumberOfDocumentsImported} documents");

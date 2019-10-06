@@ -79,7 +79,7 @@ namespace CosmosDbUploader.Test
             await uploader.RunAsync(_cts.Token);
 
             _executor.Verify(e =>
-                e.BulkImportAsync(It.Is<List<Drawing>>(l => l.Count == 0), false, true, null, null, _cts.Token));
+                e.BulkImportAsync(It.IsAny<List<Drawing>>(), false, true, null, null, _cts.Token), Times.Never);
         }
 
         [TestMethod]
