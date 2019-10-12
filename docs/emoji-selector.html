@@ -1,0 +1,85 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>emoji selector</title>
+<style>
+body {
+    font-family: 'Segoe UI Emoji', 'Segoe UI', sans-serif;
+}
+.candidates {
+    word-break: break-word;
+    background: #ccc;
+}
+.enter {
+    width: 50px;
+    font-size: 20px;
+}
+</style>
+<div id="main">
+    <a @mousedown="setHref" :href="exportHref" download="data.json">Export</a>
+    <table>
+        <tr v-for="cat in categories">
+            <td>{{ cat.name }}</td>
+            <td>{{ cat.emoji }}</td>
+            <td>
+                <input class="enter" type="text"
+                    @keydown.enter="use(cat.name, $event.target.value)">
+            </td>
+            <td class="candidates">
+                <span v-for="s in cat.candidates"
+                    @click="use(cat.name, s.str)"
+                    :title="s.name">{{ s.str }}</span>
+            </td>
+        </tr>
+    </table>
+</div>
+<script type="module">
+// @ts-check
+// @ts-ignore
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.esm.browser.js';
+
+new Vue({
+    el: "#main",
+    data: {
+        exportHref: '#',
+        categories: []
+    },
+    methods: {
+        async fetchLines(path) {
+            const text = await fetch(path).then(r => r.text());
+            return text.trim().split('\n');
+        },
+        use(category, emoji) {
+            const cat = this.categories.find(c => c.name === category);
+            cat.emoji = emoji;
+        },
+        setHref() {
+            const data = {};
+            this.categories.forEach(cat => data[cat.name] = cat.emoji);
+            this.exportHref = `data:text/json,${JSON.stringify(data)}`;
+        }
+    },
+    async created() {
+        /** @type {string[]} */
+        const unicodeData = await this.fetchLines('UnicodeData.txt');
+        /** @type {string[]} */
+        const categories = await this.fetchLines('categories.txt');
+
+        this.categories = categories.map(name => {
+            const candidates = unicodeData
+                .filter(line => line.includes(name.toUpperCase()))
+                .map(line => {
+                    const [codePoint, name] = line.split(';');
+                    return {
+                        str: String.fromCodePoint(parseInt(codePoint, 16)),
+                        name
+                    };
+                });
+            return {
+                name: name,
+                emoji: candidates.length === 1 ? candidates[0].str : '',
+                candidates: candidates,
+            };
+        });
+    }
+});
+</script>
