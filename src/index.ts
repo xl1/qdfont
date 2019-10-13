@@ -2,8 +2,8 @@ import express from 'express';
 import { FontLoader } from './font';
 
 const cosmos = {
-    endpoint: process.env['CosmosDb.EndpointUrl']!,
-    key: process.env['CosmosDb.AuthorizationKey']!,
+    endpoint: process.env['CosmosDb_EndpointUrl']!,
+    key: process.env['CosmosDb_AuthorizationKey']!,
     databaseId: 'QuickDraw',
     datasetContainerId: 'Drawings',
     sumamryContainerId: 'Summary',

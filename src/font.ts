@@ -1,6 +1,6 @@
 import { CosmosClient, Database } from '@azure/cosmos';
 import * as opentype from 'opentype.js';
-import emojis from './data.json';
+import emojis from '../docs/data.json';
 import { Drawing, MaxIdSummary, Path, CosmosDbConfg } from './models';
 import movePath from './movePath';
 
