@@ -1,0 +1,78 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8">
+    <title>QuickDraw font</title>
+    <style>
+@font-face {
+    font-family: "QuickDraw";
+    font-display: block;
+    src: url("https://quickdraw-font.azurewebsites.net/font.otf") format("opentype");
+}
+body {
+    font-family: Consolas, monospace;
+    font-size: 24px;
+}
+.center {
+    text-align: center;
+}
+.table {
+    border-spacing: 0;
+    margin: auto;
+}
+.qd {
+    font-family: "QuickDraw";
+    font-size: 40px;
+    text-align: center;
+    width: 100px;
+}
+.table tr:nth-child(2n) {
+    background: #eee;
+}
+.table tr:hover .qd {
+    font-size: 80px;
+}
+    </style>
+</head>
+<body>
+    <h1 class="center"><a href="https://quickdraw.withgoogle.com/">Quick, Draw!</a> Icon Font</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Point</th>
+                <th>Glyph</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+
+    <p>
+        <a href="https://github.com/googlecreativelab/quickdraw-dataset">Quick, Draw! Dataset</a>
+        made available by Google, Inc. under the
+        <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International license.</a>
+    </p>
+
+    <script type="module">
+import { html, render } from 'https://unpkg.com/lit-html?module';
+
+const capitalize = str => str[0].toUpperCase() + str.slice(1);
+
+async function main() {
+    /** @type {Object.<string, string>} */
+    const emojis = await fetch('data.json').then(r => r.json());
+
+    const rows = Object.entries(emojis)
+        .filter(([key, emoji]) => emoji)
+        .map(([key, emoji]) => html`<tr>
+            <td>${ capitalize(key) }</td>
+            <td>U+${ emoji.codePointAt(0).toString(16).toUpperCase() }</td>
+            <td class="qd">${ emoji }</td>
+        </tr>`);
+
+    render(rows, document.getElementById('tbody'));
+}
+
+main().catch(console.error);
+    </script>
+</body>
