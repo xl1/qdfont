@@ -1,9 +1,9 @@
 import { CosmosClient, Database } from '@azure/cosmos';
 import * as opentype from 'opentype.js';
-import emojis from '../docs/data.json';
 import { Drawing, MaxIdSummary, Path, CosmosDbConfg } from './models';
 import movePath from './movePath';
 
+const emojis: { [key: string]: string } = require('../docs/data.json');
 const fontSize = 255;
 const strokeWidth = 4;
 
