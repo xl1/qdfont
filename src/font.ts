@@ -4,11 +4,14 @@ import emojis from '../docs/data.json';
 import { Drawing, MaxIdSummary, Path, CosmosDbConfg } from './models';
 import movePath from './movePath';
 
+const fontSize = 255;
+const strokeWidth = 4;
+
 function drawPath(opath: opentype.Path, [xs, ys]: Path) {
     if (xs.length === 0) return;
     opath.moveTo(xs[0], ys[0]);
     for (let i = 1; i < xs.length; i++) {
-        opath.lineTo(xs[i], ys[i]);
+        opath.lineTo(xs[i], fontSize - ys[i]);
     }
     opath.closePath();
 }
@@ -42,7 +45,6 @@ export class FontLoader {
     }
 
     private async createGlyph(key: string, id: number, emoji: string) {
-        const strokeWidth = 4;
         const drawing = await this.fetchDrawing(key, id);
 
         const path = new opentype.Path();
@@ -56,7 +58,7 @@ export class FontLoader {
         const unicode = emoji.codePointAt(0)!;
         return new opentype.Glyph({
             name: `uni${unicode.toString(16).padStart(4, '0')}`,
-            advanceWidth: 255,
+            advanceWidth: fontSize,
             unicode,
             path,
         });
@@ -76,14 +78,14 @@ export class FontLoader {
         const font = new opentype.Font({
             familyName: 'QuickDraw Emoji',
             styleName: 'Medium',
-            unitsPerEm: 255,
-            ascender: 205,
+            unitsPerEm: fontSize,
+            ascender: fontSize - 50,
             descender: -50,
             glyphs: [
                 new opentype.Glyph({
                     name: '.notdef',
                     unicode: 0,
-                    advanceWidth: 255,
+                    advanceWidth: fontSize,
                     path: new opentype.Path()
                 }),
                 ...glyps
