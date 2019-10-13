@@ -9,7 +9,7 @@ const strokeWidth = 4;
 
 function drawPath(opath: opentype.Path, [xs, ys]: Path) {
     if (xs.length === 0) return;
-    opath.moveTo(xs[0], ys[0]);
+    opath.moveTo(xs[0], fontSize - ys[0]);
     for (let i = 1; i < xs.length; i++) {
         opath.lineTo(xs[i], fontSize - ys[i]);
     }
