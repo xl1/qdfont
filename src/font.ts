@@ -31,11 +31,6 @@ export class FontLoader {
         return resource;
     }
 
-    private fetchDrawing(word: string, id: number) {
-        return this.readAsync<Drawing>(
-            this.cosmos.datasetContainerId, word, id.toString().padStart(8, '0'));
-    }
-
     private async fetchMaxIdSumamry(): Promise<MaxIdSummary> {
         if (this.maxIdSummary) {
             return this.maxIdSummary;
@@ -44,9 +39,18 @@ export class FontLoader {
             this.cosmos.sumamryContainerId, 'maxId', '0');
     }
 
-    private async createGlyph(key: string, id: number, emoji: string) {
-        const drawing = await this.fetchDrawing(key, id);
+    private async readDrawingsAsync(params: { word: string, id: number }[]): Promise<Drawing[]>{
+        const container = this.database.container(this.cosmos.datasetContainerId);
+        const condition = params.map(({ word, id }) => {
+            const idString = id.toString().padStart(8, '0');
+            return `(d.word = "${word}" AND d.id = "${idString}")`;
+        }).join(' OR ');
+        const query = 'SELECT * FROM Drawings d WHERE ' + condition;
+        const { resources } = await container.items.query<Drawing>(query, {}).fetchAll();
+        return resources;
+    }
 
+    private createGlyph(drawing: Drawing, emoji: string) {
         const path = new opentype.Path();
         for (const [xs, ys] of drawing.drawing) {
             const outer = movePath([xs, ys], strokeWidth);
@@ -66,15 +70,16 @@ export class FontLoader {
 
     public async create(): Promise<ArrayBuffer> {
         const maxIdSummary = await this.fetchMaxIdSumamry();
-        const promises = Object.entries(emojis)
-            .filter(([key, emoji]) => emoji)
-            .map(([key, emoji]) => {
-                const maxId = maxIdSummary!.value[key];
+        const params = Object.entries(emojis)
+            .filter(([word, emoji]) => emoji)
+            .map(([word]) => {
+                const maxId = maxIdSummary.value[word];
                 const id = Math.random() * (1 + maxId) | 0;
-                return this.createGlyph(key, id, emoji);
+                return { word, id };
             });
 
-        const glyps = await Promise.all(promises);
+        const drawings = await this.readDrawingsAsync(params);
+        const glyphs = drawings.map(d => this.createGlyph(d, emojis[d.word]))
         const font = new opentype.Font({
             familyName: 'QuickDraw Emoji',
             styleName: 'Medium',
@@ -88,7 +93,7 @@ export class FontLoader {
                     advanceWidth: fontSize,
                     path: new opentype.Path()
                 }),
-                ...glyps
+                ...glyphs
             ]
         });
 
