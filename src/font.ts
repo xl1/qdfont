@@ -5,13 +5,20 @@ import movePath from './movePath';
 
 const emojis: { [key: string]: string } = require('../docs/data.json');
 const fontSize = 255;
+const descender = 50;
 const strokeWidth = 4;
 
 function drawPath(opath: opentype.Path, [xs, ys]: Path) {
     if (xs.length === 0) return;
-    opath.moveTo(xs[0], fontSize - ys[0]);
+
+    const xMax = Math.max(...xs);
+    const yMax = Math.max(...ys);
+    const xShift = (fontSize - xMax) / 2;
+    const yShift = (fontSize + yMax) / 2 - descender;
+
+    opath.moveTo(xShift + xs[0], yShift - ys[0]);
     for (let i = 1; i < xs.length; i++) {
-        opath.lineTo(xs[i], fontSize - ys[i]);
+        opath.lineTo(xShift + xs[i], yShift - ys[i]);
     }
     opath.closePath();
 }
@@ -53,10 +60,9 @@ export class FontLoader {
     private createGlyph(drawing: Drawing, emoji: string) {
         const path = new opentype.Path();
         for (const [xs, ys] of drawing.drawing) {
-            const outer = movePath([xs, ys], strokeWidth);
-            drawPath(path, outer);
-            const inner = movePath([xs.reverse(), ys.reverse()], strokeWidth);
-            drawPath(path, inner);
+            const [oxs, oys] = movePath([xs, ys], strokeWidth);
+            const [ixs, iys] = movePath([xs.reverse(), ys.reverse()], strokeWidth);
+            drawPath(path, [oxs.concat(ixs), oys.concat(iys)]);
         }
 
         const unicode = emoji.codePointAt(0)!;
@@ -84,8 +90,8 @@ export class FontLoader {
             familyName: 'QuickDraw Emoji',
             styleName: 'Medium',
             unitsPerEm: fontSize,
-            ascender: fontSize - 50,
-            descender: -50,
+            ascender: fontSize - descender,
+            descender: -descender,
             glyphs: [
                 new opentype.Glyph({
                     name: '.notdef',
