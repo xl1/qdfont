@@ -10,13 +10,11 @@ const cosmos = {
 };
 const fontLoader = new FontLoader(cosmos);
 
-const app = express();
-app.get('/font.otf', (req, res, next) => {
+export default (req: express.Request, res: express.Response, next: express.NextFunction) => {
     fontLoader.create().then(ab => {
         res.set('content-type', 'application/x-font-otf');
         res.set('access-control-allow-origin', '*');
         res.send(Buffer.from(ab));
         res.end();
     }).catch(next);
-});
-app.listen(process.env.PORT || 8080, () => console.log('listening'));
+};

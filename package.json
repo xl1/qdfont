@@ -2,12 +2,11 @@
   "name": "font-experiments",
   "version": "0.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node -r dotenv/config src/index.ts",
+    "dev": "ts-node -r dotenv/config src/server.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node dist/server.js"
   },
   "author": "xl1",
   "license": "MIT",
