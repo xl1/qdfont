@@ -3,11 +3,9 @@ import { Path, Line } from "./models";
 
 function* pathToLines([xs, ys]: Path): IterableIterator<Line> {
     if (xs.length <= 1) return;
-    let i = 0;
-    for (; i < xs.length - 1; i++) {
+    for (let i = 0; i < xs.length - 1; i++) {
         yield [[xs[i], xs[i + 1]], [ys[i], ys[i + 1]]];
     }
-    yield [[xs[i], xs[0]], [ys[i], ys[0]]];
 }
 
 function moveLine([xs, ys]: Line, offset: number): Line {
