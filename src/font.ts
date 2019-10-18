@@ -8,19 +8,45 @@ const fontSize = 255;
 const descender = 50;
 const strokeWidth = 4;
 
-function drawPath(opath: opentype.Path, [xs, ys]: Path) {
-    if (xs.length === 0) return;
+export class GlyphBuilder {
+    private readonly path = new opentype.Path();
+    private readonly paths: Path[] = [];
+    private xMax = 0;
+    private yMax = 0;
 
-    const xMax = Math.max(...xs);
-    const yMax = Math.max(...ys);
-    const xShift = (fontSize - xMax) / 2;
-    const yShift = (fontSize + yMax) / 2 - descender;
-
-    opath.moveTo(xShift + xs[0], yShift - ys[0]);
-    for (let i = 1; i < xs.length; i++) {
-        opath.lineTo(xShift + xs[i], yShift - ys[i]);
+    private addPath([xs, ys]: Path) {
+        const xShift = (fontSize - this.xMax) / 2;
+        const yShift = (fontSize + this.yMax) / 2 - descender;
+        this.path.moveTo(xShift + xs[0], yShift - ys[0]);
+        for (let i = 1; i < xs.length; i++) {
+            this.path.lineTo(xShift + xs[i], yShift - ys[i]);
+        }
+        this.path.closePath();
     }
-    opath.closePath();
+
+    addDrawing([xs, ys]: Path): this {
+        if (xs.length === 0) return this;
+        this.xMax = Math.max(this.xMax, ...xs);
+        this.yMax = Math.max(this.yMax, ...ys);
+        this.paths.push([xs, ys]);
+        return this;
+    }
+
+    build(character: string): opentype.Glyph {
+        for (const [xs, ys] of this.paths) {
+            const [oxs, oys] = movePath([xs, ys], strokeWidth);
+            const [ixs, iys] = movePath([xs.reverse(), ys.reverse()], strokeWidth);
+            this.addPath([oxs.concat(ixs), oys.concat(iys)]);
+        }
+
+        const unicode = character.codePointAt(0)!;
+        return new opentype.Glyph({
+            name: `uni${unicode.toString(16).padStart(4, '0')}`,
+            advanceWidth: fontSize,
+            unicode,
+            path: this.path
+        });
+    }
 }
 
 export class FontLoader {
@@ -57,23 +83,6 @@ export class FontLoader {
         return resources;
     }
 
-    private createGlyph(drawing: Drawing, emoji: string) {
-        const path = new opentype.Path();
-        for (const [xs, ys] of drawing.drawing) {
-            const [oxs, oys] = movePath([xs, ys], strokeWidth);
-            const [ixs, iys] = movePath([xs.reverse(), ys.reverse()], strokeWidth);
-            drawPath(path, [oxs.concat(ixs), oys.concat(iys)]);
-        }
-
-        const unicode = emoji.codePointAt(0)!;
-        return new opentype.Glyph({
-            name: `uni${unicode.toString(16).padStart(4, '0')}`,
-            advanceWidth: fontSize,
-            unicode,
-            path,
-        });
-    }
-
     public async create(): Promise<ArrayBuffer> {
         const maxIdSummary = await this.fetchMaxIdSumamry();
         const params = Object.entries(emojis)
@@ -85,7 +94,12 @@ export class FontLoader {
             });
 
         const drawings = await this.readDrawingsAsync(params);
-        const glyphs = drawings.map(d => this.createGlyph(d, emojis[d.word]))
+        const glyphs = drawings.map(d => {
+            const builder = new GlyphBuilder();
+            d.drawing.forEach(builder.addDrawing, builder);
+            return builder.build(emojis[d.word]);
+        });
+
         const font = new opentype.Font({
             familyName: 'QuickDraw Emoji',
             styleName: 'Medium',
