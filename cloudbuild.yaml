@@ -1,7 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['install']
-- name: 'gcr.io/cloud-builders/npm'
-  args: ['run', 'build']
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: ['functions', 'deploy', 'font', '--runtime', 'nodejs10', '--trigger-http', '--entry-point', 'default', '--region', 'asia-northeast1', '--ignore-file', 'none']
