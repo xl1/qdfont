@@ -2,5 +2,5 @@ import express from 'express';
 import fontHandler from './index';
 
 const app = express();
-app.get('/font.otf', fontHandler);
+app.get('/font', fontHandler);
 app.listen(process.env.PORT || 8080, () => console.log('listening'));

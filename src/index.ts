@@ -1,13 +1,7 @@
 import express from 'express';
 import { FontLoader } from './font';
+import cosmos from './cosmos';
 
-const cosmos = {
-    endpoint: process.env['CosmosDb_EndpointUrl']!,
-    key: process.env['CosmosDb_AuthorizationKey']!,
-    databaseId: 'QuickDraw',
-    datasetContainerId: 'Drawings',
-    sumamryContainerId: 'Summary',
-};
 const fontLoader = new FontLoader(cosmos);
 
 export default (req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "ts-node -r dotenv/config src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "func": "func start"
   },
   "author": "xl1",
   "license": "MIT",
@@ -17,6 +18,7 @@
     "opentype.js": "^1.1.0"
   },
   "devDependencies": {
+    "@azure/functions": "^1.0.2-beta2",
     "@types/express": "^4.17.1",
     "@types/gl-matrix": "^2.4.5",
     "@types/node": "^12.7.8",
