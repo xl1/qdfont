@@ -10,7 +10,7 @@
   "author": "xl1",
   "license": "MIT",
   "dependencies": {
-    "@azure/cosmos": "^3.3.0",
+    "@azure/cosmos": "^3.17.3",
     "gl-matrix": "^3.1.0",
     "opentype.js": "^1.1.0"
   },
