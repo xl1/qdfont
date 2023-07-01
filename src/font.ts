@@ -1,4 +1,4 @@
-import { CosmosClient, Database } from '@azure/cosmos';
+import { CosmosClient, Database, ItemDefinition } from '@azure/cosmos';
 import * as opentype from 'opentype.js';
 import { Drawing, MaxIdSummary, Path, CosmosDbConfg } from './models';
 import movePath from './movePath';
@@ -58,10 +58,10 @@ export class FontLoader {
         this.database = client.database(cosmos.databaseId);
     }
 
-    private async readAsync<T>(container: string, partition: string, id: string) {
+    private async readAsync<T extends ItemDefinition>(container: string, partition: string, id: string) {
         const item = this.database.container(container).item(id, partition);
         const { resource } = await item.read<T>();
-        return resource;
+        return resource!;
     }
 
     private async fetchMaxIdSumamry(): Promise<MaxIdSummary> {
